@@ -43,4 +43,4 @@ class ScanResult:
     @staticmethod
     def show_results():
         for key, value in ScanResult._RESULT.items():
-            print(f"{key}: {value} dBm")
+            print(f"BLE  | {key}: {value} dBm")
