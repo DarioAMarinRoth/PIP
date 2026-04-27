@@ -20,15 +20,20 @@ sudo pacman -S python python-pip
 pip install esptool mpremote
 ```
 
-Dar acceso al puerto serial
+Dar acceso al puerto usb
 
 ```bash
-sudo usermod -aG uucp $USER
+echo 'SUBSYSTEM=="tty", ATTRS{idVendor}=="303a", ATTRS{idProduct}=="1001", SYMLINK+="esp%n", MODE="0660", TAG+="uaccess"' | sudo tee -a /etc/udev/rules.d/89-esp32-usb.rules > /dev/null
+sudo udevadm control --reload-rules
+sudo udevadm trigger
 ```
+
+> Desconectar y volver a conectar esp32 a puerto usb si estaban conectadas
 
 #### 3. Instalar MicroPython
 
-Descargar la última versión de MicroPython disponible para la placa ([ESP32-C3](https://micropython.org/download/ESP32_GENERIC_C3/)).
+Descargar la última versión de MicroPython disponible para la
+placa ([ESP32-C3](https://micropython.org/download/ESP32_GENERIC_C3/)).
 
 #### 4. Flashear MicroPython
 
@@ -36,11 +41,11 @@ Descargar la última versión de MicroPython disponible para la placa ([ESP32-C3
 2. Identificar el puerto:
 
     ```bash
-    ls /dev/ttyUSB* /dev/ttyACM*
+    ls /dev/esp*
     ```
 
-    > [!Tip]
-    > Si no se encuentra la placa, reiniciar la computadora.
+   > [!Tip]
+   > Si no se encuentra la placa, reiniciar la computadora.
 3. Borrar el flash:
 
     ```bash
@@ -50,17 +55,16 @@ Descargar la última versión de MicroPython disponible para la placa ([ESP32-C3
 4. Flashear el firmware
 
     ```bash
-    esptool.py --chip esp32c3 --port /dev/<PUERTO_IDENTIFICADO> \
-    --baud 460800 write_flash -z 0x0 <RUTA_A_ESP32_GENERIC_C3-*.bin>
+    esptool.py --chip esp32c3 --port /dev/<PUERTO_IDENTIFICADO> --baud 460800 write_flash -z 0x0 <RUTA_A_ESP32_GENERIC_C3-*.bin>
     ```
 
-5. Verificar con RPLE
+5. Verificar con REPL
 
     ```bash
     mpremote connect /dev/<PUERTO_IDENTIFICADO>
     ```
 
-    En caso de funcionar correctamente debería verse el prompt `>>>`. Ctrl + x para salir.
+   En caso de funcionar correctamente debería verse el prompt `>>>`. Ctrl + x para salir.
 
 ### Subir scripts a la placa
 
@@ -78,8 +82,10 @@ mpremote connect /dev/<PUERTO_IDENTIFICADO> reset
 
 #### A tener en cuenta
 
-Según la documentación, hay dos archivos que la placa trata de manera especial al arrancar: boot.py y main.py. El script boot.py se ejecuta primero (si existe) y, una vez que finaliza, se ejecuta el script main.py. \
-Se pueden cargar archivos con nombres distintos pero no se ejecutarán automáticamente al alimentar la placa. Esto se puede hacer tanto desde RPLE:
+Según la documentación, hay dos archivos que la placa trata de manera especial al arrancar: boot.py y main.py. El script
+boot.py se ejecuta primero (si existe) y, una vez que finaliza, se ejecuta el script main.py. \
+Se pueden cargar archivos con nombres distintos pero no se ejecutarán automáticamente al alimentar la placa. Esto se
+puede hacer tanto desde RPLE:
 
 ```bash
 import mi_archivo
